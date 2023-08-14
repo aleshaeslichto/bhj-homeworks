@@ -5,8 +5,11 @@ const tasksList = document.getElementById('tasks__list');
 
 // Объявляем функции
 function addTask() {
-  const task = taskInput.value;
-  if (!task) return; // проверка на пустое значение
+  const task = taskInput.value.trim();
+  if (!task) {
+    alert('Введите текст задачи!');
+    return;
+  }
 
   // Добавляем задачу в DOM
   const taskHTML = `

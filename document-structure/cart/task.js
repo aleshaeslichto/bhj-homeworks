@@ -1,106 +1,84 @@
-const cart = document.querySelector(".cart__products");
+const product = document.querySelectorAll('.product');
+const dec = document.querySelectorAll('.product__quantity-control_dec');
+const inc = document.querySelectorAll('.product__quantity-control_inc');
+const productValue = document.querySelectorAll('.product__quantity-value');
+const productAdd = document.querySelectorAll('.product__add');
+const cart = [];
 
-// Загрузка данных корзины из кэша
-cart.innerHTML = localStorage.getItem("cartHTML");
-
-const deleteButtons = cart.querySelectorAll(".cart__product-delete");
-
-// Перебираем кнопки удаления, вешаем обработчик
-deleteButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-        button.closest(".cart__product").remove();
-        updateCart();
-    });
-});
-
-// Инициализируем кнопки кол-ва
-const quantityControls = document.querySelectorAll(
-    ".product__quantity-control"
-);
-
-// Обработчик на +-
-quantityControls.forEach((control) => {
-    control.addEventListener("click", () => {
-        const valueElement = control.parentElement.querySelector(
-            ".product__quantity-value"
-        );
-        // Парсим кол-во
-        const value = Number(valueElement.textContent);
-
-        // inc dec обработчик
-        if (
-            control.classList.contains("product__quantity-control_dec") &&
-            value > 1
-        ) {
-            valueElement.textContent = value - 1;
-        } else if (
-            control.classList.contains("product__quantity-control_inc")
-        ) {
-            valueElement.textContent = value + 1;
-        }
-    });
-});
-
-// Инициализируем кнопку "добавить в корзину"
-const addButtons = document.querySelectorAll(".product__add");
-
-addButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-        const product = button.closest(".product");
-        const id = product.dataset.id;
-        const value = Number(
-            product.querySelector(".product__quantity-value").textContent
-        );
-
-        let item = cart.querySelector(`.cart__product[data-id="${id}"]`);
-
-        if (item) {
-            updateCount(item, value);
+dec.forEach((item, index) => {
+    item.addEventListener('click', () => {
+        let count = parseInt(productValue[index].textContent);
+        if (count === 1) {
+            productValue[index].textContent = 1;
         } else {
-            item = createItem(product, value);
-            cart.append(item);
+            count -= 1;
+            productValue[index].textContent = count;
         }
-
-        updateCart();
     });
 });
 
-// Обновление кол-ва товара
-function updateCart() {
-    localStorage.setItem("cartHTML", cart.innerHTML);
-}
-
-// Обновление кол-ва товара
-function updateCount(item, value) {
-    const countElement = item.querySelector(".cart__product-count");
-    const prevValue = Number(countElement.textContent);
-    countElement.textContent = prevValue + value;
-}
-
-// Создание элемента корзины
-function createItem(product, value) {
-    const item = document.createElement("div");
-    item.className = "cart__product";
-    item.dataset.id = product.dataset.id;
-
-    const img = document.createElement("img");
-    img.className = "cart__product-image";
-    img.src = product.querySelector(".product__image").src;
-
-    const count = document.createElement("div");
-    count.className = "cart__product-count";
-    count.textContent = value;
-
-    const deleteBtn = document.createElement("div");
-    deleteBtn.className = "cart__product-delete";
-    deleteBtn.textContent = "Удалить из корзины";
-
-    deleteBtn.addEventListener("click", () => {
-        deleteBtn.closest(".cart__product").remove();
-        updateCart();
+inc.forEach((item, index) => {
+    item.addEventListener('click', () => {
+        let count = parseInt(productValue[index].textContent);
+        count += 1;
+        productValue[index].textContent = count;
     });
+});
 
-    item.append(img, count, deleteBtn);
+productAdd.forEach((item, index) => {
+    item.addEventListener('click', () => {
+        const prod = product[index];
+        const prodId = prod.dataset.id;
+        const prodImage = prod.querySelector('.product__image').getAttribute('src');
+        const count = parseInt(productValue[index].textContent);
+        const idCart = cart.findIndex((item) =>
+            item.id === prodId);
 
-    return item;
+        if (idCart !== -1) {
+            cart[idCart].quantity += count;
+        } else {
+            const object = {
+                id: prodId,
+                image: prodImage,
+                quantity: count,
+            };
+            cart.push(object);
+        }
+        cartContents();
+    });
+});
+
+function cartContents() {
+    const cartProducts = document.querySelector('.cart__products');
+    cartProducts.innerHTML = '';
+
+    cart.forEach((item) => {
+        const cartProductsItem = document.createElement('div');
+        cartProductsItem.classList.add('cart__product');
+        cartProductsItem.dataset.id = item.id;
+
+        const productImg = document.createElement('img');
+        productImg.classList.add('cart__product-image');
+        productImg.src = item.image;
+        cartProductsItem.appendChild(productImg);
+
+        const productCount = document.createElement('div');
+        productCount.classList.add('cart__product-count');
+        productCount.textContent = item.quantity;
+        cartProductsItem.appendChild(productCount);
+
+        const deleteButton = document.createElement('div');
+        deleteButton.classList.add('delete_btn');
+        deleteButton.textContent = 'X';
+        deleteButton.addEventListener('click', () => {
+            const itemIndex = cart.findIndex((cartItem) => cartItem.id === item.id);
+            if (itemIndex !== -1) {
+                cart.splice(itemIndex, 1);
+                cartContents();
+            }
+        });
+        cartProductsItem.appendChild(deleteButton);
+
+        cartProducts.appendChild(cartProductsItem);
+    });
 }

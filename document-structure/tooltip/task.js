@@ -1,24 +1,43 @@
-const tooltipList = document.getElementsByClassName("has-tooltip");
+const tips = document.querySelectorAll(".has-tooltip");
 
-for (let element of tooltipList) {
-    element.onclick = (event) => event.preventDefault();
-    element.addEventListener("click", () => {
+let activeTooltip = null;
 
-        const tooltip = document.createElement("div");
-        tooltip.className = "tooltip tooltip_active";
-        tooltip.innerText = element.getAttribute("title");
+function toggleTooltip(tooltip) {
+    const isActive = tooltip.classList.contains("tooltip_active");
 
-        if (element.querySelector(".tooltip")) {
-            element.querySelector(".tooltip").remove();
-            return;
-        };
+    if (isActive) {
+        tooltip.classList.remove("tooltip_active");
+    } else {
+        if (activeTooltip) {
+            activeTooltip.classList.remove("tooltip_active");
+        }
+        tooltip.classList.add("tooltip_active");
+        activeTooltip = tooltip;
+    }
+}
 
-        const tooltipActive = document.querySelectorAll(".tooltip_active");
-        tooltipActive.forEach(elem => elem.remove());
+function createTooltip(tip) {
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip";
+    tooltip.dataset.position = "bottom";
+    tooltip.innerText = tip.title;
+    tip.insertAdjacentElement("afterend", tooltip);
+    return tooltip;
+}
 
-        const elementLeft = element.getBoundingClientRect().left;
-        tooltip.setAttribute("style", `left: ${elementLeft}px; position: absolute`);
+function positionTooltip(tooltip, tip) {
+    const tooltipPosition = tooltip.getBoundingClientRect();
+    tooltip.dataset.position = tooltipPosition.bottom;
+    const linkRect = tip.offsetLeft;
+    tooltip.style.left = linkRect + "px";
+}
 
-        element.appendChild(tooltip);
+for (const tip of tips) {
+    const tooltip = createTooltip(tip);
+
+    tip.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleTooltip(tooltip);
+        positionTooltip(tooltip, tip);
     });
-};
+}

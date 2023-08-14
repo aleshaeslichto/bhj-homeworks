@@ -89,3 +89,12 @@ body {
 .product-shadow {
   position: absolute;
 }
+
+.delete_btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border: 2px solid green;
+  border-radius: 80%;
+  padding: 2px 5px;
+}
